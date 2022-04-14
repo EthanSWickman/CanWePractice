@@ -1,0 +1,22 @@
+{
+  "name": "canwepractice",
+  "version": "1.0.0",
+  "description": "A discord bot to tell Beavers whether or not they can sail given wind conditions at Eugene Yacht Club",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EthanSWickman/CanWePractice.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EthanSWickman/CanWePractice/issues"
+  },
+  "homepage": "https://github.com/EthanSWickman/CanWePractice#readme",
+  "dependencies": {
+    "discord.io": "^2.5.3"
+  }
+}
