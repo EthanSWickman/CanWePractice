@@ -33,6 +33,11 @@ type "npm run bot" into the shell
 0600...
 ------------------------------------------------------------------</li>
 <li>8 hour practice (tri-hourly): same as above but over 9 hours starting an hour before practice)</li>
+<li>daily weather for a practice more than 5 days out:
+-- DAYNAME, MONTH 00 ---------------------------------------------
+-- ALERT!!! WEATHER ALERT DESCRIPTION ----------------------------
+0 knots, 32F, 64F, 40% rain
+------------------------------------------------------------------</li>
 <li>weather now:
 
 -- DAYNAME, MONTH, 00 (CURRENT CONDITIONS) -----------------------
