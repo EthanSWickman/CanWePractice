@@ -1,5 +1,5 @@
 // script to access api calls
-let callGen = require("./api-calls.js");
+let apiCall = require("./api-calls.js");
 
 // reports presence of secrets file
 const fs = require("fs");
@@ -13,7 +13,13 @@ fs.exists("./secrets.json", (isExist) => {
   }
 })
 
-console.log(callGen.GetCurrentConditions());
+// dirty way to test returned strings from API calls
+apiCall.GetCurrentConditions().then(string => {
+  console.log(string);
+})
+
+
+
 
 
 
