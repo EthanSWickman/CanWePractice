@@ -1,10 +1,19 @@
+// api call library
 const bent = require("bent");
+
+// file that contains secrets like the API key
 const SECRETS = require ("./secrets.json");
 
+// json request method
 var getJSON = bent("json");
 
+// convert between integer and day/month
 const dayStrings = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const monthStrings = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+// current practice times, could be moved to a config file later 
+// format: [[dayIndex, startTime24Hr, endTime24Hr],[1, 1200, 1600],...]
+const practiceTimes = [[3, 1600, 2000], [4, 1600, 2000], [6, 1000, 1600]];
 
 // assemble the strings here and then send them, this way we minimize api calls
 
@@ -34,21 +43,19 @@ exports.GetCurrentConditions = async () => {
   return currentConditionsString;
 }
 
-exports.GetHourly = async (startDate, endDate) => {
-  let response = await getJSON("https://api.openweathermap.org/data/2.5/onecall?lat=44.09&lon=-123.29&exclude=,daily&appid=" + SECRETS.OPENWEATHERMAP_KEY) 
-  // get the data we want into a new json object
-  let weatherData;
-  for (let i = startHourIndex; i < endHourIndex; i++) {
-    
-  }
-  // return the string
-  return response;
+// returns multiline string for weather at practices within the next week
+exports.GetNextThreePractices() = async () => {
+
 }
 
-exports.GetThirdHourly = async (startDate, endDate) => {
+// returns multiline string for hourly data between two times
+GetHourly = async () => {
 }
 
-exports.GetDaily = async (date) => {
-  let weather = {};
-  return weather;
+// returns multiline string for tri-hourly data between two times
+GetThirdHourly = async (startDate, endDate) => {
+}
+
+// returns multiline string for daily data between two lines
+GetDaily = async (date) => {
 }
