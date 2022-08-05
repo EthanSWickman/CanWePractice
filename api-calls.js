@@ -7,13 +7,13 @@ const SECRETS = require ("./secrets.json");
 // json request method
 var getJSON = bent("json");
 
-// convert between integer and day/month
+// convert from integer to day/month 
 const dayStrings = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const monthStrings = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 // current practice times, could be moved to a config file later 
 // format: [[dayIndex, startTime24Hr, endTime24Hr],[1, 1200, 1600],...]
-const practiceTimes = [[3, 1600, 2000], [4, 1600, 2000], [6, 1000, 1600]];
+const practiceTimes = [[3, 16, 20], [4, 16, 20], [6, 10, 16]];
 
 // assemble the strings here and then send them, this way we minimize api calls
 
@@ -44,18 +44,41 @@ exports.GetCurrentConditions = async () => {
 }
 
 // returns multiline string for weather at practices within the next week
-exports.GetNextThreePractices() = async () => {
+exports.GetNextPractices = async () => {
+  let dateCursor = new Date();
+  let practicesOutput = 0;
+  // check for practice today
+  for (let i = 0; i < practiceTimes.length; i++) {
+    if (dateCursor.getDay() === practiceTimes[i][0]) {
+      if (dateCursor.getHours() < practiceTimes[i][1]) {
+        // add the following line to the return string
+        // GetHourly(new Date().setHours(practiceTimes[i][1]), new Date().setHours(practiceTimes[i][2]))
+        practicesOutput++;
+      }
+    }
+  }
+  // check for practices that are not today
+  while (practicesOutput < practiceTimes.length) {
+    for (let i = 0; i < practiceTimes.length; i++) {
+      // check if the 
+      if (dateCursor.getDay() === practiceTimes[i][0]) {
+        // add the following line to the return string later
+      }
+    }
+
+    practicesOutput++;
+  }
 
 }
 
-// returns multiline string for hourly data between two times
-GetHourly = async () => {
+// returns multiline string for hourly data between two dates 
+GetHourly = async (startDate, endDate) => {
 }
 
-// returns multiline string for tri-hourly data between two times
+// returns multiline string for tri-hourly data between two dates 
 GetThirdHourly = async (startDate, endDate) => {
 }
 
-// returns multiline string for daily data between two lines
+// returns multiline string for daily data 
 GetDaily = async (date) => {
 }

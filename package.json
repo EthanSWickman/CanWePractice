@@ -19,6 +19,7 @@
   "homepage": "https://github.com/EthanSWickman/CanWePractice#readme",
   "dependencies": {
     "bent": "^7.3.12",
-    "discord.io": "^2.5.3"
+    "discord.io": "^2.5.3",
+    "discord.js": "^14.1.2"
   }
 }
