@@ -71,6 +71,18 @@ exports.GetNextPractices = async () => {
 
 }
 
+// TODO
+// complete this function
+exports.GetTodaysWeather = async () => {
+  return ''
+}
+
+// TODO
+// complete this function
+exports.GetTomorrowsWeather = async () => {
+  return ''
+}
+
 // returns multiline string for hourly data between two dates 
 GetHourly = async (startDate, endDate) => {
 }
