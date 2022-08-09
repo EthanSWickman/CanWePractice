@@ -54,3 +54,5 @@ bot.on("interactionCreate", async interaction => {
 })
 
 bot.login(SECRETS.DISCORD_BOT_TOKEN)
+
+apiCall.GetTodaysWeather();

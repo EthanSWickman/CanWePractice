@@ -22,8 +22,8 @@ exports.GetCurrentConditions = async () => {
   // fetch json response from api
   let response = await getJSON("https://api.openweathermap.org/data/2.5/onecall?lat=44.09&lon=-123.29&exclude=minutely,hourly,daily&units=imperial&appid=" + SECRETS.OPENWEATHERMAP_KEY)
 
-  // 25200 offsets the UTC time to PST time
-  let date = new Date((response.current.dt - 25200) * 1000);
+  // make a javascript date from response data
+  let date = new Date((response.current.dt) * 1000);
 
   // fill out weather alert descriptions if they exist
   let alertString = ``;
@@ -35,9 +35,9 @@ exports.GetCurrentConditions = async () => {
 
   // assemble string
   let currentConditionsString = `
-  -- ${dayStrings[date.getDay()]}, ${monthStrings[date.getMonth()]} ${date.getDate()} (CURRENT CONDITIONS) -- ${alertString}
-  ${date.toLocaleTimeString([], {hourCycle: "h23", hour: "2-digit", minute: "2-digit"})}: ${response.current.wind_speed} mph winds, ${response.current.temp}° F, ${response.current.weather[0].description}  
-  -------------------------------------------------------------------
+-- ${dayStrings[date.getDay()]}, ${monthStrings[date.getMonth()]} ${date.getDate()} (CURRENT CONDITIONS) -- ${alertString}
+${date.toLocaleTimeString([], {hourCycle: "h23", hour: "2-digit", minute: "2-digit"})}: ${response.current.wind_speed} mph winds, ${response.current.temp}° F, ${response.current.weather[0].description}  
+-------------------------------------------------------------------
   `
 
   return currentConditionsString;
@@ -65,7 +65,6 @@ exports.GetNextPractices = async () => {
         // add the following line to the return string later
       }
     }
-
     practicesOutput++;
   }
 
@@ -74,17 +73,42 @@ exports.GetNextPractices = async () => {
 // TODO
 // complete this function
 exports.GetTodaysWeather = async () => {
-  return ''
+  let response = await getJSON("https://api.openweathermap.org/data/2.5/onecall?lat=44.09&lon=-123.29&exclude=minutely,daily&units=imperial&appid=" + SECRETS.OPENWEATHERMAP_KEY)
+
+  console.log(response.hourly[0])
+
+  let firstHour = new Date(response.hourly[0].dt * 1000).getHours()
+
+  let startIndex = 0
+  let endIndex = 21 - firstHour
+
+  if (firstHour < 8) {
+    startIndex = 8 - firstHour
+    endIndex = 21 - firstHour
+  }
+  else if (firstHour > 18) {
+    startIndex = 32 - firstHour
+    endIndex = 45 - firstHour
+  }
+
+  while (startIndex < endIndex) {
+    console.log(new Date(response.hourly[startIndex].dt * 1000).toDateString())
+    startIndex++
+  }
+
+  let hourlyDataString = `
+${(firstHour > 18 ? `It is late so I'll give you tomorrow's weather instead \n` : ``)}hourly data
+  `  
+
+  console.log(hourlyDataString)
+
+  return hourlyDataString; 
 }
 
 // TODO
 // complete this function
 exports.GetTomorrowsWeather = async () => {
   return ''
-}
-
-// returns multiline string for hourly data between two dates 
-GetHourly = async (startDate, endDate) => {
 }
 
 // returns multiline string for tri-hourly data between two dates 
