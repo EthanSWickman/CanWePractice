@@ -36,7 +36,7 @@ exports.GetCurrentConditions = async () => {
   // assemble string
   let currentConditionsString = `
 -- ${dayStrings[date.getDay()]}, ${monthStrings[date.getMonth()]} ${date.getDate()} (CURRENT CONDITIONS) -- ${alertString}
-${date.toLocaleTimeString([], {hourCycle: "h23", hour: "2-digit", minute: "2-digit"})}: ${response.current.wind_speed} mph winds, ${response.current.temp}° F, ${response.current.weather[0].description}  
+${date.toLocaleTimeString([], {hourCycle: "h23", hour: "2-digit", minute: "2-digit"})}: ${MphToKnots(response.current.wind_speed)} knot winds, ${response.current.temp}° F, ${response.current.weather[0].description}  
 -------------------------------------------------------------------
   `
 
@@ -76,12 +76,14 @@ exports.GetTodaysWeather = async () => {
   let response = await getJSON("https://api.openweathermap.org/data/2.5/onecall?lat=44.09&lon=-123.29&exclude=minutely,daily&units=imperial&appid=" + SECRETS.OPENWEATHERMAP_KEY)
 
   console.log(response.hourly[0])
+  console.log("we have received data for " + response.hourly.length + " hours")
 
   let firstHour = new Date(response.hourly[0].dt * 1000).getHours()
 
   let startIndex = 0
   let endIndex = 21 - firstHour
 
+  // if the first hour is early enough to just display from eight
   if (firstHour < 8) {
     startIndex = 8 - firstHour
     endIndex = 21 - firstHour
@@ -91,17 +93,21 @@ exports.GetTodaysWeather = async () => {
     endIndex = 45 - firstHour
   }
 
-  while (startIndex < endIndex) {
-    console.log(new Date(response.hourly[startIndex].dt * 1000).toDateString())
-    startIndex++
+  let weatherStrings = [];
+
+  for (let i = startIndex; i < endIndex; i++) {
+    weatherStrings.push(
+    new Date(response.hourly[i].dt * 1000).toLocaleTimeString('en-US') + "\n"
+    + response.hourly[i].weather[0].description + "\n" 
+    + MphToKnots(response.hourly[i].wind_speed) + " knots with "
+    + MphToKnots(response.hourly[i].wind_gust) + " knot gusts"
+    )
   }
 
   let hourlyDataString = `
-${(firstHour > 18 ? `It is late so I'll give you tomorrow's weather instead \n` : ``)}hourly data
-  `  
-
-  console.log(hourlyDataString)
-
+${(firstHour > 18 ? `It's too late to go sailing tonight, reporting tomorrow's data\n` : ``)}Hourly Data
+${weatherStrings.map(weatherString => `${weatherString}`).join('\n\n')}
+`  
   return hourlyDataString; 
 }
 
@@ -117,4 +123,8 @@ GetThirdHourly = async (startDate, endDate) => {
 
 // returns multiline string for daily data 
 GetDaily = async (date) => {
+}
+
+MphToKnots = (mph) => {
+  return Math.round(mph * 100) / 100
 }
