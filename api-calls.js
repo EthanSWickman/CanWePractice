@@ -43,16 +43,32 @@ ${date.toLocaleTimeString([], {hourCycle: "h23", hour: "2-digit", minute: "2-dig
   return currentConditionsString;
 }
 
+// TODO
+// finish this function
 // returns multiline string for weather at practices within the next week
 exports.GetNextPractices = async () => {
-  let dateCursor = new Date();
-  let practicesOutput = 0;
+  let dateCursor = new Date()
+  let practicesOutput = 0
+  let nextPracticesStrings = []
+  
+  let response = await getJSON("https://api.openweathermap.org/data/2.5/onecall?lat=44.09&lon=-123.29&exclude=current,minutely&units=imperial&appid=" + SECRETS.OPENWEATHERMAP_KEY)
+  
   // check for practice today
   for (let i = 0; i < practiceTimes.length; i++) {
     if (dateCursor.getDay() === practiceTimes[i][0]) {
       if (dateCursor.getHours() < practiceTimes[i][1]) {
+        // find the first hour of practice on the hourly data we just grabbed
+        startIndex = 0
+        for(let j = startIndex; j < startIndex + practiceTimes[i][2] - practiceTimes[i][1]; j++) {
+          nextPracticesStrings.push(
+          new Date(response.hourly[j].dt * 1000).toLocaleTimeString('en-US') + '\n'
+          + response.hourly[j].description + '\n'
+          + MphToKnots(response.hourly[i].wind_speed) + " knots with "
+          + MphToKnots(response.hourly[i].wind_gust) + " knot gusts"
+          )
+        }
+        nextPracticesStrings.push('\n')
         // add the following line to the return string
-        // GetHourly(new Date().setHours(practiceTimes[i][1]), new Date().setHours(practiceTimes[i][2]))
         practicesOutput++;
       }
     }
@@ -60,18 +76,24 @@ exports.GetNextPractices = async () => {
   // check for practices that are not today
   while (practicesOutput < practiceTimes.length) {
     for (let i = 0; i < practiceTimes.length; i++) {
-      // check if the 
+      // check if the cursor's day is a practice day
       if (dateCursor.getDay() === practiceTimes[i][0]) {
-        // add the following line to the return string later
+        // if practice totally falls within 48 hours of now, do hourly data similar to above, else do daily data
+        practicesOutput++
       }
     }
-    practicesOutput++;
   }
 
+  let nextPracticesString = `
+${nextPracticesStrings.map(nextPracticesString => `${nextPracticesString}`).join('\n')}
+  `
+
+  console.log(nextPracticesString)
+
+  return nextPracticesString
 }
 
-// TODO
-// complete this function
+// returns today's conditions during sailable hours
 exports.GetTodaysWeather = async () => {
   let response = await getJSON("https://api.openweathermap.org/data/2.5/onecall?lat=44.09&lon=-123.29&exclude=minutely,daily&units=imperial&appid=" + SECRETS.OPENWEATHERMAP_KEY)
 
@@ -83,7 +105,6 @@ exports.GetTodaysWeather = async () => {
   let startIndex = 0
   let endIndex = 21 - firstHour
 
-  // if the first hour is early enough to just display from eight
   if (firstHour < 8) {
     startIndex = 8 - firstHour
     endIndex = 21 - firstHour
