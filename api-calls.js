@@ -79,10 +79,8 @@ exports.GetNextPractices = async () => {
     let startIndex
     let practiceLength = practiceTimes[practiceIndex][2] - practiceTimes[practiceIndex][1]
     // check if we can output hourly data
-    // today = 6 and practice = 0, 
-    // practice must be less than 2 ahead of us 
-    // practice must not be behind us
-    if ((nowDay + 2) % 7 > practiceTimes[practiceIndex][0] && true /* fix this condition */) { 
+    if (nowDay + 2 > practiceTimes[practiceIndex][0] && (nowDay <= practiceTimes[practiceIndex][0] || (nowDay === 6 && practiceTimes[practiceIndex][0] === 0))) {
+      console.log('hey there')
       // set start index 
       startIndex = practiceTimes[practiceIndex][1] - nowHour
       if (nowDay != practiceTimes[practiceIndex][0]) 
@@ -92,7 +90,7 @@ exports.GetNextPractices = async () => {
       for (let j = startIndex; j < startIndex + practiceLength; j++) {
         let time = hourlyData[j]
         outputString += 
-        new Date (time.dt * 1000).toLocaleTimeString('en-US') + " " + time.temp + "degrees, " + time.weather[0].description + "\n"
+        new Date (time.dt * 1000).toLocaleTimeString('en-US') + " " + time.temp + " degrees, " + time.weather[0].description + "\n"
         + MphToKnots(time.wind_speed) + " knots with " + MphToKnots(time.wind_gust) + " knot gusts\n"
       }
       outputString += "\n"
