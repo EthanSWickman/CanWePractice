@@ -13,6 +13,7 @@ const monthStrings = ["January", "February", "March", "April", "May", "June", "J
 
 // current practice times, could be moved to a config file later 
 // format: [[dayIndex, startTime24Hr, endTime24Hr],[1, 1200, 1600],...]
+// MUST BE ARRANGED IN ASCENDING ORDER, ONLY ONE PRACTICE PER DAY (PROBABLY)
 const practiceTimes = [[3, 16, 20], [4, 16, 20], [6, 10, 16]];
 
 // assemble the strings here and then send them, this way we minimize api calls
@@ -47,50 +48,78 @@ ${date.toLocaleTimeString([], {hourCycle: "h23", hour: "2-digit", minute: "2-dig
 // finish this function
 // returns multiline string for weather at practices within the next week
 exports.GetNextPractices = async () => {
-  let dateCursor = new Date()
-  let practicesOutput = 0
-  let nextPracticesStrings = []
-  
-  let response = await getJSON("https://api.openweathermap.org/data/2.5/onecall?lat=44.09&lon=-123.29&exclude=current,minutely&units=imperial&appid=" + SECRETS.OPENWEATHERMAP_KEY)
-  
-  // check for practice today
+  let triHourlyData = await getJSON("https://api.openweathermap.org/data/2.5/forecast?lat=44.09&lon=-123.29&units=imperial&appid=" + SECRETS.OPENWEATHERMAP_KEY)
+  let hourlyData = await getJSON("https://api.openweathermap.org/data/2.5/onecall?lat=44.09&lon=-123.29&exclude=minutely&units=imperial&appid=" + SECRETS.OPENWEATHERMAP_KEY)
+  let dailyData = hourlyData.daily
+  hourlyData = hourlyData.hourly
+
+  // find the first day of practice we want to print
+  let firstDayIndex = 0
+  let now = new Date()
+  let nowDay = now.getDay()
+  let nowHour = now.getHours()
   for (let i = 0; i < practiceTimes.length; i++) {
-    if (dateCursor.getDay() === practiceTimes[i][0]) {
-      if (dateCursor.getHours() < practiceTimes[i][1]) {
-        // find the first hour of practice on the hourly data we just grabbed
-        startIndex = 0
-        for(let j = startIndex; j < startIndex + practiceTimes[i][2] - practiceTimes[i][1]; j++) {
-          nextPracticesStrings.push(
-          new Date(response.hourly[j].dt * 1000).toLocaleTimeString('en-US') + '\n'
-          + response.hourly[j].description + '\n'
-          + MphToKnots(response.hourly[i].wind_speed) + " knots with "
-          + MphToKnots(response.hourly[i].wind_gust) + " knot gusts"
-          )
-        }
-        nextPracticesStrings.push('\n')
-        // add the following line to the return string
-        practicesOutput++;
-      }
+    // ignore day if it comes before today
+    if (practiceTimes[i][0] < nowDay) 
+      continue
+    // we found a day after ours this week
+    if (practiceTimes[i][0] > nowDay) {
+      firstDayIndex = i   
+      break
     }
-  }
-  // check for practices that are not today
-  while (practicesOutput < practiceTimes.length) {
-    for (let i = 0; i < practiceTimes.length; i++) {
-      // check if the cursor's day is a practice day
-      if (dateCursor.getDay() === practiceTimes[i][0]) {
-        // if practice totally falls within 48 hours of now, do hourly data similar to above, else do daily data
-        practicesOutput++
-      }
-    }
+    // we have practice today, check if it already started, if not, we found our first day
+    if (practiceTimes[i][1] >= new Date(response.hourly.dt * 1000).getHours())
+      firstDayIndex = i
+    break
   }
 
-  let nextPracticesString = `
-${nextPracticesStrings.map(nextPracticesString => `${nextPracticesString}`).join('\n')}
-  `
+  let outputString = "Next Practices\n"
+  for (let i = 0; i < practiceTimes.length; i++) {
+    let practiceIndex = (firstDayIndex + i) % 3
+    let startIndex
+    let practiceLength = practiceTimes[practiceIndex][2] - practiceTimes[practiceIndex][1]
+    // check if we can output hourly data
+    // today = 6 and practice = 0, 
+    // practice must be less than 2 ahead of us 
+    // practice must not be behind us
+    if ((nowDay + 2) % 7 > practiceTimes[practiceIndex][0] && true /* fix this condition */) { 
+      // set start index 
+      startIndex = practiceTimes[practiceIndex][1] - nowHour
+      if (nowDay != practiceTimes[practiceIndex][0]) 
+        startIndex +=24
+      // add output weather
+      outputString += new Date(hourlyData[startIndex].dt * 1000).toDateString() + "\n"
+      for (let j = startIndex; j < startIndex + practiceLength; j++) {
+        let time = hourlyData[j]
+        outputString += 
+        new Date (time.dt * 1000).toLocaleTimeString('en-US') + " " + time.temp + "degrees, " + time.weather[0].description + "\n"
+        + MphToKnots(time.wind_speed) + " knots with " + MphToKnots(time.wind_gust) + " knot gusts\n"
+      }
+      outputString += "\n"
+    }
+    // output tri-hourly data
+    // practice must be less than 5 ahead of us
+    // practice must not be behind us
+    else if ((nowDay + 5) % 7 > practiceTimes[practiceIndex][0] && true /* fix this condition */) { 
+      // set start index 
+      startIndex = 0
+    }
+    // output daily data
+    else {
+      // set start index 
+      dayIndex = practiceTimes[practiceIndex][0] + 6 - nowDay
+      let day = dailyData[dayIndex]
+      outputString += 
+      new Date(day.dt * 1000).toDateString() + "\n"
+      + day.temp.max + " degrees max, " + day.temp.min + " degrees min\n"
+      + day.weather[0].description + "\n"
+      + MphToKnots(day.wind_speed) + " knots with " + MphToKnots(day.wind_gust) + " knot gusts\n"
+    }
+  }
 
-  console.log(nextPracticesString)
+  console.log(outputString)
 
-  return nextPracticesString
+  return outputString 
 }
 
 // returns today's conditions during sailable hours
