@@ -19,7 +19,7 @@ bot.on("ready", () => {
 
 // TODO
 // change to comma seperated days of week for practices at some point
-let practiceDaysDelimited = "3,4,6,7"
+let practiceDaysDelimited = "3,4,6"
 
 bot.once("ready", () => {
   new cron.CronJob("00 00 * * " + practiceDaysDelimited, async () => {
