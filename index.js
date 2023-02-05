@@ -8,11 +8,10 @@ if (!fs.existsSync("./secrets.json")) {
 // script to access api calls
 const apiCall = require("./api-calls.js");
 const Discord = require("discord.js");
-const bot = new Discord.Client({intents: [Discord.GatewayIntentBits.MessageContent]});
+const bot = new Discord.Client({intents: [Discord.GatewayIntentBits.Guilds]});
 const SECRETS = require("./secrets.json")
 
 const cron = require("cron");
-const { channelLink } = require("discord.js");
 
 bot.on("ready", () => {
   console.log("bot is ready")
@@ -20,16 +19,19 @@ bot.on("ready", () => {
 
 // TODO
 // change to comma seperated days of week for practices at some point
-let practiceDaysDelimited = "*"
+let practiceDaysDelimited = "3,4,6,7"
 
 bot.once("ready", () => {
-  bot.channels.fetch("1004931421791600690")
-  new cron.CronJob("00 00 00 * * " + practiceDaysDelimited,() => {
-    let channel = bot.channels.cache.get("1004931421791600690")
-    channel.send("THIS WILL BE THE WEATHER REPORT FOR TODAY EVENTUALLY")
-    // TODO
-    // send today's weather conditions over the practice period if and only if tbere is a scheduled practice today
+  new cron.CronJob("00 00 * * " + practiceDaysDelimited, async () => {
+    let channel = bot.channels.cache.get("1020471338294595635")
+    channel.send(await apiCall.GetTodaysWeather())
+    console.log('sending today\'s report')
   }).start()
+  new cron.CronJob("00 00 * * 1", async () => {
+    let channel = bot.channels.cache.get("1020471338294595635")
+    channel.send(await apiCall.GetNextPractices())
+    console.log('sending weekly report')
+  })
 })
 
 bot.on("interactionCreate", async interaction => {

@@ -48,79 +48,63 @@ ${date.toLocaleTimeString([], {hourCycle: "h23", hour: "2-digit", minute: "2-dig
 // finish this function
 // returns multiline string for weather at practices within the next week
 exports.GetNextPractices = async () => {
-  let triHourlyData = await getJSON("https://api.openweathermap.org/data/2.5/forecast?lat=44.09&lon=-123.29&units=imperial&appid=" + SECRETS.OPENWEATHERMAP_KEY)
+  // good through 5 days
+  let triHourlyData = (await getJSON("https://api.openweathermap.org/data/2.5/forecast?lat=44.09&lon=-123.29&units=imperial&appid=" + SECRETS.OPENWEATHERMAP_KEY)).list
+  // good through 48 hours
   let hourlyData = await getJSON("https://api.openweathermap.org/data/2.5/onecall?lat=44.09&lon=-123.29&exclude=minutely&units=imperial&appid=" + SECRETS.OPENWEATHERMAP_KEY)
+  // good through 10 days
   let dailyData = hourlyData.daily
   hourlyData = hourlyData.hourly
 
-  // find the first day of practice we want to print
-  let firstDayIndex = 0
-  let now = new Date()
-  let nowDay = now.getDay()
-  let nowHour = now.getHours()
-  for (let i = 0; i < practiceTimes.length; i++) {
-    // ignore day if it comes before today
-    if (practiceTimes[i][0] < nowDay) 
-      continue
-    // we found a day after ours this week
-    if (practiceTimes[i][0] > nowDay) {
-      firstDayIndex = i   
-      break
+  let practiceHoursFromNow = []
+
+  let nowDay = new Date().getDay()
+  let nowHour = new Date().getHours() 
+
+  // iterate through each day in the next 7 days
+  for (let i = 0; i < 7; i++) {
+    // iterate through each practice to check if a practice falls on this day
+    for (let j = 0; j < practiceTimes.length; j++) {
+      if ((nowDay + i) % 7 == practiceTimes[j][0]) {
+        // continue if practice is today, but it's already happening
+        if (nowDay == practiceTimes[j][0] && nowHour >= practiceTimes[j][1]) continue
+        practiceHoursFromNow.push([j, i*24 + practiceTimes[j][1] - nowHour,i*24 + practiceTimes[j][2] - nowHour])
+      }
     }
-    // we have practice today, check if it already started, if not, we found our first day
-    if (practiceTimes[i][1] >= new Date(response.hourly.dt * 1000).getHours())
-      firstDayIndex = i
-    break
   }
 
-  let outputString = "Next Practices\n"
-  for (let i = 0; i < practiceTimes.length; i++) {
-    let practiceIndex = (firstDayIndex + i) % 3
-    let startIndex
-    let practiceLength = practiceTimes[practiceIndex][2] - practiceTimes[practiceIndex][1]
-    // check if we can output hourly data
-    if (nowDay + 2 > practiceTimes[practiceIndex][0] && (nowDay <= practiceTimes[practiceIndex][0] || (nowDay === 6 && practiceTimes[practiceIndex][0] === 0))) {
-      console.log('hey there')
-      // set start index 
-      startIndex = practiceTimes[practiceIndex][1] - nowHour
-      if (nowDay != practiceTimes[practiceIndex][0]) 
-        startIndex +=24
-      // add output weather
-      outputString += new Date(hourlyData[startIndex].dt * 1000).toDateString() + "\n"
-      for (let j = startIndex; j < startIndex + practiceLength; j++) {
-        let time = hourlyData[j]
-        outputString += 
-        new Date (time.dt * 1000).toLocaleTimeString('en-US') + " " + time.temp + " degrees, " + time.weather[0].description + "\n"
-        + MphToKnots(time.wind_speed) + " knots with " + MphToKnots(time.wind_gust) + " knot gusts\n"
-      }
-      outputString += "\n"
+  console.log(practiceHoursFromNow)
+
+  
+  let hourlyStrings = []
+  let triHourlyStrings = []
+  let dailyStrings = []
+
+  for (let i = 0; i < practiceHoursFromNow.length; i++) {
+    if (practiceHoursFromNow[i][2] < 48) {
+      hourlyStrings.push(GetHourly(practiceHoursFromNow[i][1], practiceHoursFromNow[i][2], hourlyData))
     }
-    // output tri-hourly data
-    // practice must be less than 5 ahead of us
-    // practice must not be behind us
-    else if ((nowDay + 5) % 7 > practiceTimes[practiceIndex][0] && true /* fix this condition */) { 
-      // set start index 
-      startIndex = 0
+    else if (practiceHoursFromNow[i][2] < 120) {
+      triHourlyStrings.push(GetThirdHourly(Math.floor(practiceHoursFromNow[i][1]/3) * 3, Math.floor(practiceHoursFromNow[i][2]/3) * 3, triHourlyData))
     }
-    // output daily data
     else {
-      // set start index 
-      dayIndex = practiceTimes[practiceIndex][0] + 6 - nowDay
-      let day = dailyData[dayIndex]
-      outputString += 
-      new Date(day.dt * 1000).toDateString() + "\n"
-      + day.temp.max + " degrees max, " + day.temp.min + " degrees min\n"
-      + day.weather[0].description + "\n"
-      + MphToKnots(day.wind_speed) + " knots with " + MphToKnots(day.wind_gust) + " knot gusts\n"
+      dailyStrings.push(GetDaily(practiceHoursFromNow[i][1], dailyData))
     }
   }
+
+
+  let outputString = `
+  ${hourlyStrings.map(weatherString => `${weatherString}`).join('\n\n')}
+  ${triHourlyStrings.map(weatherString => `${weatherString}`).join('\n\n')}
+  ${dailyStrings.map(weatherString => `${weatherString}`).join('\n\n')}
+  `
 
   console.log(outputString)
-
-  return outputString 
+  return outputString
 }
 
 // returns today's conditions during sailable hours
+// function done
 exports.GetTodaysWeather = async () => {
   let response = await getJSON("https://api.openweathermap.org/data/2.5/onecall?lat=44.09&lon=-123.29&exclude=minutely,daily&units=imperial&appid=" + SECRETS.OPENWEATHERMAP_KEY)
 
@@ -162,15 +146,61 @@ ${weatherStrings.map(weatherString => `${weatherString}`).join('\n\n')}
 // TODO
 // complete this function
 exports.GetTomorrowsWeather = async () => {
-  return ''
+  return 'not yet implemented'
 }
 
-// returns multiline string for tri-hourly data between two dates 
-GetThirdHourly = async (startDate, endDate) => {
+// returns multiline string with hourly weather data in interval of two hours from now
+GetHourly = (startHour, endHour, hourlyWeatherData) => {
+  let date = new Date(hourlyWeatherData[startHour].dt * 1000)
+  let outputStrings = []
+  outputStrings.push(date.toLocaleDateString('en-US'))
+  for (let i = startHour; i < endHour; i++) {
+    outputStrings.push(
+      date.toLocaleTimeString('en-US') + '\n'
+      + hourlyWeatherData[i].weather[0].description + '\n'
+      + MphToKnots(hourlyWeatherData[i].wind_speed) + " knots with "
+      + MphToKnots(hourlyWeatherData[i].wind_gust) + " knot gusts"
+      )
+    date.setTime(date.getTime() + 60*60*1000)
+  }
+  let outputString = `
+  ${outputStrings.map(output => `${output}`).join('\n')}
+  `
+  return outputString
+}
+
+// returns multiline string with tri-hourly weather data in interval of two hours from now
+GetThirdHourly = (startHour, endHour, triHourlyWeatherData) => {
+  console.log(triHourlyWeatherData[0])
+  let outputStrings = []
+  let date = new Date(triHourlyWeatherData[Math.floor(startHour / 3)].dt * 1000)
+  outputStrings.push(date.toLocaleDateString('en-US'))
+
+  for (let i = Math.floor(startHour / 3); 3*i <= endHour; i++) {
+    console.log('i is: ' + i)
+    outputStrings.push(
+      new Date(triHourlyWeatherData[i].dt * 1000).toLocaleTimeString('en-US') + '\n'
+      + triHourlyWeatherData[i].weather[0].description + '\n'
+      + MphToKnots(triHourlyWeatherData[i].wind.speed) + " knots with "
+      + MphToKnots(triHourlyWeatherData[i].wind.gust) + " knot gusts"
+    ) 
+  }
+
+  let outputString = `
+  ${outputStrings.map(output => `${output}`).join('\n')}
+  `
+  return outputString
 }
 
 // returns multiline string for daily data 
-GetDaily = async (date) => {
+GetDaily = (hoursFromNow, weatherData) => {
+  let dayIndex = Math.floor(hoursFromNow / 24)
+  let date = new Date()
+  date.setTime(date.getTime() + dayIndex*24*60*60*1000)
+  let outputString = date.toLocaleDateString('en-US') + '\n'
+  + weatherData[dayIndex].weather[0].description + '\n'
+  + weatherData[dayIndex].temp.day + " degrees, " + MphToKnots(weatherData[dayIndex].wind_speed) + " knots with " + MphToKnots(weatherData[dayIndex].wind_gust) + " knot gusts"
+  return outputString
 }
 
 MphToKnots = (mph) => {
