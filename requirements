@@ -1,0 +1,32 @@
+admin features:
+
+toggle/configure set practice days/days to monitor and auto-remind
+	set days/hours
+	set channel
+	turn on/off
+	set desired weather fields
+	remove a future date from the practice schedule quietly or announce cancellation
+	set auto-cancel conditions/ask for confirmation before cancelling
+
+
+parrot (force the bot to say something)
+
+
+remind features: 
+
+remind users of practice weather the day of
+
+
+user features:
+
+get weather
+	now
+	today
+	tomorrow
+
+
+reach:
+
+integrate with email to maintain database of attendees
+
+integrate with attendance spreadsheet to provide Discord based way of marking attendance and reviewing it
