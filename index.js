@@ -1,60 +1,76 @@
-// reports presence of secrets file
-const fs = require("fs");
-if (!fs.existsSync("./secrets.json")) {
-  console.log("secrets file is not present, ask Ethan for his secrets")
-  process.exit()
+// report missing secrets file
+import { readdirSync, existsSync } from 'fs'
+if (!existsSync('./secrets.js')) {
+    console.log('secrets file must be present in project root, ask Ethan for his secrets')
+    process.exit()
 }
 
-// script to access api calls
-const apiCall = require("./api-calls.js");
-const Discord = require("discord.js");
-const bot = new Discord.Client({intents: [Discord.GatewayIntentBits.Guilds]});
-const SECRETS = require("./secrets.json")
+import secrets from './secrets.js' 
 
-const cron = require("cron");
+import { join } from 'path'
 
-bot.on("ready", () => {
-  console.log("bot is ready")
+import { Client, Collection, Events, GatewayIntentBits } from 'discord.js'
+
+import cron from 'cron'
+
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const client = new Client({intents: [GatewayIntentBits.Guilds]});
+
+client.on('ready', () => {
+    console.log('bot started successfully')
 })
 
-// TODO
-// change to comma seperated days of week for practices at some point
-let practiceDaysDelimited = "3,4,6"
+client.commands = new Collection()
 
-bot.once("ready", () => {
-  new cron.CronJob("00 00 * * " + practiceDaysDelimited, async () => {
-    let channel = bot.channels.cache.get("1020471338294595635")
-    channel.send(await apiCall.GetTodaysWeather())
-    console.log('sending today\'s report')
-  }).start()
-  new cron.CronJob("00 00 * * 1", async () => {
-    let channel = bot.channels.cache.get("1020471338294595635")
-    channel.send(await apiCall.GetNextPractices())
-    console.log('sending weekly report')
-  })
+const foldersPath = join(__dirname, 'commands')
+const commandFolders = readdirSync(foldersPath)
+
+// collect commands
+for (const folder of commandFolders) { 
+    const commandsPath = join(foldersPath, folder)
+    const commandFiles = readdirSync(commandsPath).filter(file => file.endsWith('.js'))
+
+    for (const file of commandFiles) {
+        const filePath = join(commandsPath, file)
+        const { default: command } = await import(filePath)
+
+        if (command && 'data' in command && 'execute' in command) {
+            client.commands.set(command.data.name, command)
+        } 
+        else {
+            console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property, or it is otherwised malformed`)
+        }
+    }
+}
+
+// respond to commands
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isChatInputCommand()) return
+
+    const command = client.commands.get(interaction.commandName)
+
+    if (!command) {
+        console.error(`No command matching ${interaction.commandName} was found`)
+        return
+    }
+
+    try {
+        await command.execute(interaction)
+    }
+    catch (err) {
+        console.log(err)
+        if (interaction.replied) {
+            await interaction.followUp({content: 'There was an error while executing this command!', ephemeral: true})
+        }
+        else {
+            await interaction.reply({content: 'There was an error while executing this command!', ephemeral: true})
+        }
+    }
 })
 
-bot.on("interactionCreate", async interaction => {
-  if (!interaction.isChatInputCommand()) {
-    return
-  }
-
-  const {commandName} = interaction;
-
-  if (commandName === "weathernow") {
-    await interaction.reply(await apiCall.GetCurrentConditions())
-  }
-  else if (commandName === "nextpractices") {
-    await interaction.reply(await apiCall.GetNextPractices())
-  }
-  else if (commandName === "weathertoday") {
-    await interaction.reply(await apiCall.GetTodaysWeather())
-  }
-  else if (commandName === "weathertomorrow") {
-    await interaction.reply(await apiCall.GetTomorrowsWeather())
-  }
-})
-
-bot.login(SECRETS.DISCORD_BOT_TOKEN)
-
-// apiCall.GetNextPractices()
+client.login(secrets.DISCORD_BOT_TOKEN)
