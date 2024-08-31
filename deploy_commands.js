@@ -43,7 +43,7 @@ const rest = new REST().setToken(secrets.DISCORD_BOT_TOKEN);
 
 		// The put method is used to fully refresh all commands in the guild with the current set
 		const data = await rest.put(
-			Routes.applicationCommands(secrets.DISCORD_APP_ID),
+			Routes.applicationGuildCommands(secrets.DISCORD_APP_ID, '839581698328625162'),
 			{ body: commands },
 		);
 
