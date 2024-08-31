@@ -1,5 +1,5 @@
 # Secrets that we want to keep away from Github
-secrets.json
+secrets.*
 
 # Logs
 logs
