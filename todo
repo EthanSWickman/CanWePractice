@@ -11,3 +11,9 @@ create API calls that are parsed into data structures and returned to the callin
 create config file that contains settings to be adjusted for administrators
 
 create administrative route so that settings can be changed via the Discord interface
+
+add default permissions to all commands
+
+copy current webcam image of lake to current conditions embed
+
+switch to nws weather data
