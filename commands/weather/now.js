@@ -1,7 +1,7 @@
 import config from '../../db/config.js'
 import { EmbedBuilder, SlashCommandBuilder } from 'discord.js'
 import GetWeatherData from '../../apis/openweathermap.js'
-import MphToKnots from '../../util.js';
+import MphToKnots from '../../util/util.js';
 
 
 // need temp, uv index, wind speed, wind gust, wind direction, and icon

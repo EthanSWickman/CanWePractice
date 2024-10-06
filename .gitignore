@@ -1,6 +1,9 @@
 # Secrets that we want to keep away from Github
 secrets.*
 
+# vs code stuff
+.vscode/*
+
 # Logs
 logs
 *.log

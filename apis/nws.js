@@ -1,35 +1,60 @@
 import secrets from '../secrets.js'
 import config from '../db/config.js'
+import { 
+    Cache, 
+    PointsCache, 
+    StationCache, 
+    CurrentCache, 
+    DailyCache, 
+    HourlyCache, 
+    AlertsCache } from '../util/cache_obj.js'
 import bent from 'bent'
 
+const header = {'User-Agent': secrets.NWS_USER_AGENT}
+const getNWS = bent('GET', header)
+
 // forecast caches
-const currentObj = { data: null, cacheTime: null, ttl: config.ttl.current }
-const forecastObj = { data: null, cacheTime: null, ttl: config.ttl.forecast }
-const hourlyForecastObj = { data: null, cacheTime: null, ttl: config.ttl.hourly }
-const alertsObj = { data: null, cacheTime: null, ttl: config.ttl.alerts }
+const pointsCache = new PointsCache()
+const stationCache = new StationCache(pointsCache)
+const currentCache = new CurrentCache(stationCache)
+const dailyCache = new DailyCache(pointsCache)
+const hourlyCache = new HourlyCache(pointsCache)
+const alertsCache = new AlertsCache()
 
-function validateCachedObj(obj) {
-    if (obj.data == null || Date.now() - obj.cacheTime > obj.ttl) {
-        return False
-    }
-    return True
+// forecast requests to caches
+const forecastDict = {
+    'current': currentCache,
+    'points': pointsCache,
+    'daily': dailyCache,
+    'hourly': hourlyCache,
+    'alerts': alertsCache,
+    'station': stationCache,
 }
 
-export default async function GetWeatherData() {
-    const header = {
-        'User-Agent': 'canwepractice (esw@halfangle.com)',
-    }
+export default async function GetWeatherData(requested) {
+    // refresh requested data
+    refreshProms = []
+    for (const req of requested) 
+        refreshProms.push(forecastDict[req])
+    await Promise.all(refreshProms)
 
-    const getNWSJson = bent('GET', 'json', header)
+    // add requested data to payload 
+    const payload = {}
+    for (const req of requested) 
+        payload[req] = forecastDict[req].data
 
-    const points = await getNWSJson(`https://api.weather.gov/points/${config.location.lat}%2C${config.location.lon}`)
-    const forecast = await getNWSJson(points.properties.forecast)
-    const hourlyForecast = await getNWSJson(points.properties.hourlyForecast)
-    const alerts = await getNWSJson(`https://api.weather.gov/alerts/active?status=actual&point=${location.config.lat}%2C${config.location.lon}&urgency=Expected,Future,Unknown&limit=500`)
+    // refresh queries
+    /* 
+    const points = await getNWS(`https://api.weather.gov/points/${config.location.lat}%2C${config.location.lon}`)
+    const forecast = await getNWS(points.properties.forecast)
+    const hourlyForecast = await getNWS(points.properties.hourlyForecast)
+    const alerts = await getNWS(`https://api.weather.gov/alerts/active?status=actual&point=${location.config.lat}%2C${config.location.lon}&urgency=Expected,Future,Unknown&limit=500`)
+    */
 
-    // would like to find gusts (worst case we can get current gusts via observation stations route)
 
-    return true
+    return payload
 }
 
-GetWeatherData()
+let t = new AlertsCache(pointsCache)
+await t.refresh()
+const next = 0

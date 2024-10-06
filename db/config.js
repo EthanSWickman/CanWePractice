@@ -11,5 +11,6 @@ export default {
         hourly: 1000 * 60 * 5,
         alerts: 1000 * 60 * 10,
         current: 1000 * 60 * 1
-    }
+    },
+    nearest_station: 'KEUG'
 }
