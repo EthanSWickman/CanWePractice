@@ -69,7 +69,9 @@ export class StationCache extends Cache {
 
             const jsonResponse = await apiResponse.json()
             data = {
-                id: jsonResponse.features[0].properties.stationIdentifier
+                id: jsonResponse.features[0].properties.stationIdentifier,
+                lat: jsonResponse.features[0].geometry.coordinates[1],
+                lon: jsonResponse.features[0].geometry.coordinates[0],
             }
         }
 
@@ -144,6 +146,13 @@ export class CurrentCache extends Cache {
                 },
                 temperature: ConvertTemperature('celsius', config.units.temperature, jsonResponse.properties.temperature.value),
                 description: jsonResponse.properties.textDescription,
+                icon: jsonResponse.properties.icon,
+                observationTime: new Date(jsonResponse.properties.timestamp),
+                station: {
+                    id: this.#stationCache.data.id,
+                    lat: this.#stationCache.data.lat,
+                    lon: this.#stationCache.data.lon,
+                },
             } 
         }
 
@@ -256,7 +265,6 @@ export class AlertsCache extends Cache {
     constructor() {
         super('alerts')
     }
-    
 
     async refreshData() {
         const apiResponse = await getNWS(`https://api.weather.gov/alerts/active?status=actual&point=${config.location.lat}%2C${config.location.lon}`)
@@ -284,9 +292,7 @@ export class AlertsCache extends Cache {
             }
 
             const jsonResponse = await apiResponse.json()
-            data = {
-                alerts: await Promise.all(jsonResponse.features.map(parseAlert))
-            }
+            data = await Promise.all(jsonResponse.features.map(parseAlert))
         }
 
         // return data, expiration, and error 

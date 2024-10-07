@@ -1,33 +1,29 @@
 import config from '../../db/config.js'
 import { EmbedBuilder, SlashCommandBuilder } from 'discord.js'
-import GetWeatherData from '../../apis/openweathermap.js'
-import MphToKnots from '../../util/util.js';
+import GetWeatherData from '../../apis/nws/nws.js'
+import { ConvertDirection } from '../../util/unit_converter.js'
+import { CalculateDistance } from '../../util/distance_calc.js'
 
-
-// need temp, uv index, wind speed, wind gust, wind direction, and icon
+// todo -- add arrow for wind direction
 function CurrentWeatherDataEmbed(data, alerts) {
-    // fix units, formatting
-    data.wind_gust = Math.max(data.wind_gust, data.wind_speed)
-    data.wind_gust = MphToKnots(data.wind_gust)
-    data.wind_speed = MphToKnots(data.wind_speed)
-
-    data.weather[0].description = data.weather[0].description.replace(/(^\w{1})|(\s+\w{1})/g, letter => letter.toUpperCase())
+    const roundedTemp = Math.round(data.temperature * 100) / 100
+    const roundedWindSpeed = Math.round(data.wind.speed * 100) / 100
+    const distanceToStation = CalculateDistance(config.location.lat, config.location.lon, data.station.lat, data.station.lon, config.units.distance)
 
     const currentWeatherEmbed = new EmbedBuilder()
 	.setColor('black')
 	.setTitle(`Current Weather at ${config.location.name}`.toUpperCase())
-	.setURL('https://www.windfinder.com/weatherforecast/fern_ridge_reservoir_eugene')
-	.setDescription(data.weather[0].description)
-    .setThumbnail(`https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`)
+	.setURL(`https://forecast.weather.gov/MapClick.php?lat=${config.location.lat}&lon=${config.location.lon}`)
+	.setDescription(data.description)
+    .setThumbnail(data.icon)
 	.addFields(
-        { name: 'Temp', value: `${data.temp}° F` },
-        { name: 'Wind', value: `${data.wind_speed}-${data.wind_gust} knots` },
-        { name: 'UVI', value: '5', inline: true },
+        { name: 'Temp', value: `${roundedTemp}° F` },
+        { name: 'Wind', value: `${ConvertDirection('degrees', 'point', data.wind.direction)} -- ${roundedWindSpeed} knots` },
 	)
 	.setImage(`https://images.webcamgalore.com/35385-current-webcam-Eugene-Oregon.jpg?${Date.now()}`)
-	.setTimestamp()
+    .setFooter( { text: `Data from ${data.station.id} (${Math.round(distanceToStation * 10) / 10} ${config.units.distance} from ${config.location.name})`, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
+	.setTimestamp(data.observationTime) 
 
-    console.log(alerts)
     if (alerts) {
         alerts.forEach((a) => {
             currentWeatherEmbed.addFields(
@@ -44,7 +40,7 @@ export default {
         .setName('weathernow')
         .setDescription(`displays current weather at the yacht club`),
     async execute(interaction) {
-        const data = await GetWeatherData(['current'])
+        const data = await GetWeatherData(['current', 'alerts'])
         await interaction.reply({ embeds: CurrentWeatherDataEmbed(data.current, data.alerts) })
     },
 }
