@@ -1,5 +1,6 @@
 import bent from 'bent'
-import config from '../db/config.js'
+import config from '../../db/config.js'
+import { ConvertSpeed, ConvertTemperature } from './../../util/unit_converter.js'
 const header = {'User-Agent': 'canwepractice (esw@halfangle.com)'}
 const getNWS = bent('GET', header)
 
@@ -138,10 +139,10 @@ export class CurrentCache extends Cache {
             let jsonResponse = await apiResponse.json()
             data = {
                 wind: {
-                    speed: jsonResponse.properties.windSpeed.value,
+                    speed: ConvertSpeed('kmph', config.units.speed, jsonResponse.properties.windSpeed.value),
                     direction: jsonResponse.properties.windDirection.value
                 },
-                temperature: jsonResponse.properties.temperature.value,
+                temperature: ConvertTemperature('celsius', config.units.temperature, jsonResponse.properties.temperature.value),
                 description: jsonResponse.properties.textDescription,
             } 
         }
@@ -182,10 +183,10 @@ export class DailyCache extends Cache {
                     endTime: p.endTime,
                     description: p.shortForecast,
                     icon: p.icon,
-                    temperature: p.temperature,
+                    temperature: ConvertTemperature('fahrenheit', config.units.temperature, p.temperature),
                     precipitation: p.probabilityOfPrecipitation.value,
                     wind: {
-                        speed: p.windSpeed,
+                        speed: ConvertSpeed('mph', config.units.speed, p.windSpeed.match(/^\d*(.\d+)?/)[0]),
                         direction: p.windDirection
                     }
                 }
@@ -232,10 +233,10 @@ export class HourlyCache extends Cache {
                     endTime: p.endTime,
                     description: p.shortForecast,
                     icon: p.icon,
-                    temperature: p.temperature,
+                    temperature: ConvertTemperature('fahrenheit', config.units.temperature, p.temperature),
                     precipitation: p.probabilityOfPrecipitation.value,
                     wind: {
-                        speed: p.windSpeed,
+                        speed: ConvertSpeed('mph', config.units.speed, p.windSpeed.match(/^\d*(.\d+)?/)[0]),
                         direction: p.windDirection
                     }
                 }

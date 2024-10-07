@@ -5,7 +5,11 @@ export default {
         lon: -123.3039,
         name: 'Fern Ridge'
     },
-    units: 'imperial', // only metric or imperial
+    units: {
+        speed: 'knots', 
+        distance: 'miles',
+        temperature: 'fahrenheit',
+    },
     ttl: { // when to refresh each weather data cache 
         forecast: 1000 * 60 * 30,
         hourly: 1000 * 60 * 5,

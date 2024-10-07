@@ -1,10 +1,4 @@
-understand current repository
-
-understand secrets file structure and rebuild it
-
 make a clean list of commands/functionality that will be required
-
-create necessary data structures
 
 create API calls that are parsed into data structures and returned to the calling commands
 
@@ -15,5 +9,3 @@ create administrative route so that settings can be changed via the Discord inte
 add default permissions to all commands
 
 copy current webcam image of lake to current conditions embed
-
-switch to nws weather data
