@@ -3,33 +3,15 @@ import config from '../db/config.js'
 const header = {'User-Agent': 'canwepractice (esw@halfangle.com)'}
 const getNWS = bent('GET', header)
 
-/*
-
-a cache should have external traits: 
-    - a method to refresh
-    - a method to access current data
-    - a method to access status message associated with current data
-
-a cache should have internal traits:
-    - a ttl that makes sure request only happens once every so often
-    - an optional data expiration date before which data is not refreshed
-    - a method that calls an api if after ttl and after data expiration date and passes results to data and error message to error status trait
-
-*/
-
-// todo -- rework cache class after changes
-// todo -- go through entire file and add catch statements
-// todo -- make sure that we are getting the correct expiration times
 // todo -- invalidate all caches if configuration has been updated (maybe just if lon/lat has been updated)
-// todo -- get cache time from api instead of javasrcipt Date.now()
-// todo -- check over each forecast once more for useful data missed
+// todo -- add error handling, maybe a try/catch for refresh routes
 export class Cache {
     #data 
-    #status = null
+    #error = null
+    #cacheExpireTime = 0
+    #dataPromise = null
     #cacheTime = 0
-    #ttl = 0  
-    #cacheExpireTime = Infinity
-    #locked = false
+    #ttl = 1000 * 60  
 
     constructor() {}
 
@@ -37,27 +19,25 @@ export class Cache {
         return this.#data
     }
 
-    get status() {
-        return this.#status
-    }
-
     // refresh cache
     async refresh() {
         // refuse to refresh if up to date
         if (this.#cacheTime + this.#ttl > Date.now() && this.#cacheExpireTime > Date.now())
-            return 
+            return await this.#data
 
-        // lock the cache 
-        // locked in case another request comes in during the current refresh
-        while (this.#locked) {}
-        this.#locked = true
+        this.#cacheTime = Date.now()
 
-        // probably makes sense to return {data: , err: , expiration: } because can't access privates in child classes
-        let parsedResponse = await this.refreshData()
-        this.#data = parsedResponse.data
+        // refresh data
+        if (this.#dataPromise == null) {
+            this.#dataPromise = this.refreshData().then((res) => {
+                this.#dataPromise = null
+                this.#data = res.data
+                this.#cacheExpireTime = res.expiration
+                this.#error = res.error
+            })
+        }
 
-        // unlock cache
-        this.#locked = false
+        await this.#dataPromise
     }
 }
 
@@ -100,7 +80,7 @@ export class StationCache extends Cache {
 
 export class PointsCache extends Cache {
     constructor() {
-        super()
+        super('points')
     }
 
     async refreshData() {
@@ -140,7 +120,6 @@ export class CurrentCache extends Cache {
     }
 
     async refreshData() { 
-        // refresh station 
         await this.#stationCache.refresh()
 
         const apiResponse = await getNWS(`https://api.weather.gov/stations/${this.#stationCache.data.id}/observations/latest`)
@@ -175,12 +154,11 @@ export class DailyCache extends Cache {
     #pointsCache = null 
 
     constructor(pointsCache) {
-        super()
+        super('daily')
         this.#pointsCache = pointsCache
     }
 
     async refreshData() { 
-        // refresh station 
         await this.#pointsCache.refresh()
 
         const apiResponse = await getNWS(this.#pointsCache.data.dailyForecast)
@@ -224,7 +202,7 @@ export class DailyCache extends Cache {
 }
 
 export class HourlyCache extends Cache {
-  #pointsCache = null 
+    #pointsCache = null 
 
     constructor(pointsCache) {
         super()
@@ -232,7 +210,6 @@ export class HourlyCache extends Cache {
     }
 
     async refreshData() { 
-        // refresh station 
         await this.#pointsCache.refresh()
 
         const apiResponse = await getNWS(this.#pointsCache.data.hourlyForecast)
@@ -276,13 +253,12 @@ export class HourlyCache extends Cache {
 
 export class AlertsCache extends Cache {
     constructor() {
-        super()
+        super('alerts')
     }
     
 
     async refreshData() {
-        // const apiResponse = await getNWS(`https://api.weather.gov/alerts/active?status=actual&point=${config.location.lat}%2C${config.location.lon}`)
-        const apiResponse = await getNWS('https://api.weather.gov/alerts/active?status=actual&message_type=alert&region=PA&limit=500')
+        const apiResponse = await getNWS(`https://api.weather.gov/alerts/active?status=actual&point=${config.location.lat}%2C${config.location.lon}`)
 
         let data = null
         let expiration = null
