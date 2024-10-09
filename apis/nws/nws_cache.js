@@ -238,8 +238,8 @@ export class HourlyCache extends Cache {
 
             const parsePeriod = async (p) => {
                 return {
-                    startTime: p.startTime,
-                    endTime: p.endTime,
+                    startTime: new Date(p.startTime),
+                    endTime: new Date (p.endTime),
                     description: p.shortForecast,
                     icon: p.icon,
                     temperature: ConvertTemperature('fahrenheit', config.units.temperature, p.temperature),
@@ -252,9 +252,7 @@ export class HourlyCache extends Cache {
             }
 
             let jsonResponse = await apiResponse.json()
-            data = {
-                periods: await Promise.all(jsonResponse.properties.periods.map(parsePeriod)) 
-            } 
+            data = await Promise.all(jsonResponse.properties.periods.map(parsePeriod)) 
         }
 
         return { data: data, expiration, expiration, error: error }

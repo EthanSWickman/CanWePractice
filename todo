@@ -1,3 +1,5 @@
+remove all hardcoded units and replace them with a system for doing shorthand labels for allowed types in config, like (degrees) F for fahrenheit in temp, or mph for speed units
+
 make a clean list of commands/functionality that will be required
 
 create API calls that are parsed into data structures and returned to the calling commands

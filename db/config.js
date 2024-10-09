@@ -1,5 +1,7 @@
+// todo -- add options for each configuration, e.g. knots, mph, kmph for speed units
 export default {
     days: [1, 3, 5],
+    timezone: 'PDT',
     location: {
         lat: 44.1132,
         lon: -123.3039,

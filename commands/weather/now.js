@@ -6,8 +6,8 @@ import { CalculateDistance } from '../../util/distance_calc.js'
 
 // todo -- add arrow for wind direction
 function CurrentWeatherDataEmbed(data, alerts) {
-    const roundedTemp = Math.round(data.temperature * 100) / 100
-    const roundedWindSpeed = Math.round(data.wind.speed * 100) / 100
+    const roundedTemp = Math.round(data.temperature)
+    const roundedWindSpeed = Math.round(data.wind.speed * 10) / 10
     const distanceToStation = CalculateDistance(config.location.lat, config.location.lon, data.station.lat, data.station.lon, config.units.distance)
 
     const currentWeatherEmbed = new EmbedBuilder()
@@ -17,7 +17,7 @@ function CurrentWeatherDataEmbed(data, alerts) {
 	.setDescription(data.description)
     .setThumbnail(data.icon)
 	.addFields(
-        { name: 'Temp', value: `${roundedTemp}° F` },
+        { name: 'Temp', value: `${roundedTemp}° F` }, // todo -- change this to adapt to temp unit config
         { name: 'Wind', value: `${ConvertDirection('degrees', 'point', data.wind.direction)} -- ${roundedWindSpeed} knots` },
 	)
 	.setImage(`https://images.webcamgalore.com/35385-current-webcam-Eugene-Oregon.jpg?${Date.now()}`)
