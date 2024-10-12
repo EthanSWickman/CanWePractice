@@ -1,28 +1,24 @@
-admin features:
+admin commands:
+- configpractices [times] [?officers] [?announcements]
+    - times: practice days, with start time and length
+    - officers: channel to send weather reminders to officers
+    - announcements: channel to send weather info right before practice
+- confighourlyforecasts [starthour] [endhour]
+    - starthour: earliest hour to show forecast for
+    - endhour: latest hour to show forecast for
+- parrot [channel] [text]
+    - channel: channel to which to send message
+    - text: text to send to channel from bot 
 
-toggle/configure set practice days/days to monitor and auto-remind
-	set days/hours
-	set channel
-	turn on/off
-	set desired weather fields
-	remove a future date from the practice schedule quietly or announce cancellation
-	set auto-cancel conditions/ask for confirmation before cancelling
+general commands: 
+- weathernow: show now's weather
+- weathertoday: show today's weather
+- weathertomorrow: show tomorrow's weather
+- weatherpractices: show weather for upcoming practices
 
-
-parrot (force the bot to say something)
-
-
-remind features: 
-
-remind users of practice weather the day of
-
-
-user features:
-
-get weather
-	now
-	today
-	tomorrow
+routine: 
+- announce practice weather reminder in officers channel day before 
+- send weather and picture of yacht club one hour before practices 
 
 
 reach:
@@ -30,3 +26,5 @@ reach:
 integrate with email to maintain database of attendees
 
 integrate with attendance spreadsheet to provide Discord based way of marking attendance and reviewing it
+
+allow for specification of desired weather fields for forecast commands
