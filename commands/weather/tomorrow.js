@@ -1,7 +1,6 @@
 import config from '../../db/config.js'
 import { EmbedBuilder, SlashCommandBuilder } from 'discord.js'
 import GetWeatherData from '../../apis/nws/nws.js'
-import { ConvertDirection } from '../../util/unit_converter.js'
 
 // todo -- add arrow for wind direction
 // todo -- add one or two fields for current weather and current alerts

@@ -1,6 +1,22 @@
 // todo -- add options for each configuration, e.g. knots, mph, kmph for speed units
 export default {
-    days: [1, 3, 5],
+    practices: [
+        {
+            day: 1, 
+            hour: 16, 
+            length: 4  
+        },
+        {
+            day: 3, 
+            hour: 16, 
+            length: 4  
+        },
+        {
+            day: 5, 
+            hour: 16, 
+            length: 4  
+        },
+    ],
     timezone: 'PDT',
     location: {
         lat: 44.1132,
