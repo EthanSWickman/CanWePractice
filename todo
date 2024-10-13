@@ -1,13 +1,12 @@
-remove all hardcoded units and replace them with a system for doing shorthand labels for allowed types in config, like (degrees) F for fahrenheit in temp, or mph for speed units
+create sqlite database with entry for each server
 
-make a clean list of commands/functionality that will be required
+add custom config to database
 
-create API calls that are parsed into data structures and returned to the calling commands
+add admin config routes that interact with database
 
-create config file that contains settings to be adjusted for administrators
+add default permissions to commands 
 
-create administrative route so that settings can be changed via the Discord interface
+replace all hardcoded units with config units
 
-add default permissions to all commands
+replace all hardcoded locations with config locations
 
-copy current webcam image of lake to current conditions embed
