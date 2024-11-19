@@ -6,7 +6,7 @@ import GetWeatherData from '../../apis/nws/nws.js'
 // todo -- add one or two fields for current weather and current alerts
 // todo -- add an asterisk/exclamation point or small descriptor to each period if it aligns with an alert
 // todo -- add better formatting 
-function HourlyWeatherDataEmbed(data, alerts, hourly) {
+function hourlyWeatherDataEmbed(data, alerts, hourly) {
     let fields = []
     for (let i = 0; i < hourly.length; i++) {
         if (i != 0 && hourly[i].startTime.getHours() == 0)
@@ -50,6 +50,6 @@ export default {
         .setDescription(`displays today's weather at the yacht club`),
     async execute(interaction) {
         const data = await GetWeatherData(['current', 'alerts', 'hourly'])
-        await interaction.reply({ embeds: HourlyWeatherDataEmbed(data.current, data.alerts, data.hourly) })
+        await interaction.reply({ embeds: hourlyWeatherDataEmbed(data.current, data.alerts, data.hourly) })
     },
 }

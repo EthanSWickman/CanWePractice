@@ -5,7 +5,7 @@ import { ConvertDirection } from '../../util/unit_converter.js'
 import { CalculateDistance } from '../../util/distance_calc.js'
 
 // todo -- add arrow for wind direction
-function CurrentWeatherDataEmbed(data, alerts) {
+function currentWeatherDataEmbed(data, alerts) {
     const roundedTemp = Math.round(data.temperature)
     const roundedWindSpeed = Math.round(data.wind.speed * 10) / 10
     const distanceToStation = CalculateDistance(config.location.lat, config.location.lon, data.station.lat, data.station.lon, config.units.distance)
@@ -41,6 +41,6 @@ export default {
         .setDescription(`displays current weather at the yacht club`),
     async execute(interaction) {
         const data = await GetWeatherData(['current', 'alerts'])
-        await interaction.reply({ embeds: CurrentWeatherDataEmbed(data.current, data.alerts) })
+        await interaction.reply({ embeds: currentWeatherDataEmbed(data.current, data.alerts) })
     },
 }

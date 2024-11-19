@@ -16,7 +16,9 @@ import cron from 'cron'
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-import db from './db/db.js'
+import { createDbConnection, newGuild }  from './db/db.js'
+
+await createDbConnection()
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -50,9 +52,16 @@ for (const folder of commandFolders) {
     }
 }
 
+client.on(Events.GuildCreate, async guild => {
+    newGuild(guild.id)
+})
+
+
 // respond to commands
 client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isChatInputCommand()) return
+
+    newGuild(interaction.guildId)
 
     const command = client.commands.get(interaction.commandName)
 
