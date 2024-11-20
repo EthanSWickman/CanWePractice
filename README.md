@@ -1,45 +1,23 @@
 # CanWePractice
-A discord bot to tell Beavers whether or not they can sail given wind conditions at Eugene Yacht Club. Uses Node.js and the discord.io package.
+A discord bot to tell Beavers whether or not they can sail given wind conditions at Eugene Yacht Club. 
 
 # How to run the bot
 type "npm run bot" into the shell
 
-# Bot Functions (not yet implemented)
-<ul>
-<li>!nextpractices (displays hourly wind and rain data and recommendation for practices that end within 48 hours, and 3 hour data for practices within 5 days, and daily data for practices within 7 days, always reaches a number of practices equal to the weekly number of practices)</li>
-<li>!weathernow (gives data on the current wind levels at EYC</li>
-<li>day-before-practice-alert (sends a message 24 hours before the start of practice giving hourly data)</li>
-<li>day-of-practice-alert (sends a message 4 hours before practice giving hourly data)</li>
-</ul>
+# Bot Functions
+- everyone
+    - /weathernow (responds with current weather conditions)
+    - /weathertoday (responds with today's weather conditions)
+    - /weathertomorrow (responds with tomorrow's weather conditions)
+- admin only
+    - /parrot {_channel_} {_text_} (sends a specified text message to a specified channel)
 
-# Output Examples
-<ul>
-<li>4 hour practice (hourly):
-
--- DAYNAME, MONTH 00 ---------------------------------------------
--- ALERT!!! WEATHER ALERT DESCRIPTION ----------------------------
-0000: 0 knots, 56F, 40% rain
-0100: 2 knots, 64F, 20% rain
-0200...
-0300...
-------------------------------------------------------------------</li>
-<li>8 hour practice (hourly): same as above with more lines</li>
-<li>4 hour practice (tri-hourly): 
-
--- DAYNAME, MONTH 00 ---------------------------------------------
--- ALERT!!! WEATHER ALERT DESCRIPTION ----------------------------
-0000: 0 knots, 56F, 40% rain
-0300: 0 knots, 64F, 30% rain
-0600...
-------------------------------------------------------------------</li>
-<li>8 hour practice (tri-hourly): same as above but over 9 hours starting an hour before practice)</li>
-<li>daily weather for a practice more than 5 days out:
--- DAYNAME, MONTH 00 ---------------------------------------------
--- ALERT!!! WEATHER ALERT DESCRIPTION ----------------------------
-0 knots, 32F, 64F, 40% rain
-------------------------------------------------------------------</li>
-<li>weather now:
-
--- DAYNAME, MONTH, 00 (CURRENT CONDITIONS) -----------------------
-0035: 12 knots, 73F, 0% rain
-------------------------------------------------------------------</li>
+# Bot Functions (coming soon)
+- everyone
+    - /weatherpractice (responds with weather conditions at next practice)
+    - /weatherpractices (responds with weather conditions at next practices)
+- admin only
+    - /configpractices {_practice\_days_} {_practice\_time\_1_} {_practice\_time\_2_} {_..._} (configure practice times - example "/configpractices MThSu 1630 1600 1000")
+    - /configofficerpracticereminders {_channel_} {_advance\_hours_} (send officer practice reminders to _channel_ _advance\_hours_ before practice)
+    - /configpracticereminders {_channel_} {_advance\_hours_} (send general practice reminders to _channel_ _advance\_hours_ before practice)
+    - more commands to configure, for example, a different practice location for the server
